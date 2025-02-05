@@ -14,7 +14,6 @@
  * TO DO: Cargar los modulos necesarios
  *******************/
 import * as THREE from "../lib/three.module.js";
-import {GLTFLoader} from "../lib/GLTFLoader.module.js";
 
 // Variables de consenso
 let renderer, scene, camera;
@@ -68,7 +67,6 @@ function init()
 function loadScene()
 {
     const material = new THREE.MeshBasicMaterial( { color: 'yellow', wireframe: true } );
-
     const geoCubo = new THREE.BoxGeometry( 2,2,2 );
     const geoEsfera = new THREE.SphereGeometry( 1, 20,20 );
     const geoCono = new THREE.ConeGeometry();
@@ -94,25 +92,28 @@ function loadScene()
     const loader = new THREE.ObjectLoader();
 
 
-    anillo.position.x = xObj2;
-    anillo.position.y = yObj2;
 
-    tubo.position.x = xObj1;
-    tubo.position.y = yObj1;
-
-    cubo.position.x = xObj3;
-    cubo.position.y = yObj3;
+    cubo.position.x = xObj1;
+    cubo.position.y = yObj1;
     
-    esfera.position.x = xObj4;
-    esfera.position.y = yObj4;
+    esfera.position.x = xObj2;
+    esfera.position.y = yObj2;
 
-    cono.position.x = xObj5;
-    cono.position.y = yObj5;
+    cono.position.x = xObj3;
+    cono.position.y = yObj3;
+
+    tubo.position.x = xObj4;
+    tubo.position.y = yObj4;
+
+    anillo.position.x = xObj5;
+    anillo.position.y = yObj5;
+
     scene.add(pentagonoObj);
-    pentagonoObj.add(tubo);
+
     pentagonoObj.add(cubo);
     pentagonoObj.add(esfera);
     pentagonoObj.add(cono);
+    pentagonoObj.add(tubo);
     pentagonoObj.add(anillo);
     /*******************
     * TO DO: Añadir a la escena un modelo importado en el centro del pentagono
@@ -144,12 +145,12 @@ function update()
     angulo += 0.01;
     anguloPropio -= 0.02;
     pentagonoObj.rotation.z = angulo;
-    tubo.rotation.z = anguloPropio;
-    cubo.rotation.z = anguloPropio;
-    esfera.rotation.z = anguloPropio;
-    anillo.rotation.z = anguloPropio;
-    cono.rotation.z = anguloPropio;
-   
+
+    cubo.rotation.x = anguloPropio;
+    esfera.rotation.x = anguloPropio;
+    cono.rotation.x = anguloPropio;
+    tubo.rotation.x = anguloPropio;
+    anillo.rotation.x = anguloPropio;
 }
 
 function render()
