@@ -66,6 +66,8 @@ function init()
 
 function loadScene()
 {
+    var chessboard = new THREE.TextureLoader().load( 'images/chess.png' );
+    var materialSuelo = new THREE.MeshLambertMaterial( { vertexColors: true, map: chessboard, side: THREE.DoubleSide } );
     const material = new THREE.MeshBasicMaterial( { color: 'yellow', wireframe: true } );
     const geoCubo = new THREE.BoxGeometry( 2,2,2 );
     const geoEsfera = new THREE.SphereGeometry( 1, 20,20 );
@@ -82,7 +84,7 @@ function loadScene()
     *******************/
     const suelo = new THREE.Mesh( new THREE.PlaneGeometry(10,10, 10,10), material );
     scene.add(suelo);
-    suelo.rotation.y = -Math.PI / 2;
+    suelo.rotation.x = -Math.PI / 2;
     
     /*******************
     * TO DO: Construir una escena con 5 figuras diferentes posicionadas
