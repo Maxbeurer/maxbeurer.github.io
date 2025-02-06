@@ -143,7 +143,7 @@ function update()
     * y del conjunto pentagonal sobre el objeto importado
     *******************/
     angulo += 0.01;
-    anguloPropio -= 0.02;
+    anguloPropio -= 0.01;
     pentagonoObj.rotation.z = angulo;
 
     cubo.rotation.x = anguloPropio;
@@ -151,6 +151,11 @@ function update()
     cono.rotation.x = anguloPropio;
     tubo.rotation.x = anguloPropio;
     anillo.rotation.x = anguloPropio;
+    cubo.rotation.z = anguloPropio;
+    esfera.rotation.z = anguloPropio;
+    cono.rotation.z = anguloPropio;
+    tubo.rotation.z = anguloPropio;
+    anillo.rotation.z = anguloPropio;
 }
 
 function render()
