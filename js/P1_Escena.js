@@ -66,19 +66,19 @@ function init()
 
 function loadScene()
 {
-    var chessboard = new THREE.TextureLoader().load( 'images/chess.png' );
-    var materialSuelo = new THREE.MeshLambertMaterial( { vertexColors: true, map: chessboard, side: THREE.DoubleSide } );
-    const material = new THREE.MeshBasicMaterial( { color: 'yellow', wireframe: true } );
+    // var chessboard = new THREE.TextureLoader().load( 'images/chess.png' );
+    // var materialSuelo = new THREE.MeshLambertMaterial( { vertexColors: true, map: chessboard, side: THREE.DoubleSide } );
+    const material = new THREE.MeshNormalMaterial( {} );
     const geoCubo = new THREE.BoxGeometry( 2,2,2 );
     const geoEsfera = new THREE.SphereGeometry( 1, 20,20 );
     const geoCono = new THREE.ConeGeometry();
-    const geoTubo = new THREE.TubeGeometry();
-    const geoAnillo = new THREE.RingGeometry();
+    const geoKnot = new THREE.TorusKnotGeometry();
+    const geoCapsula = new THREE.CapsuleGeometry();
     cubo = new THREE.Mesh( geoCubo, material );
     esfera = new THREE.Mesh( geoEsfera, material );
     cono = new THREE.Mesh( geoCono, material );
-    tubo = new THREE.Mesh( geoTubo, material );
-    anillo = new THREE.Mesh ( geoAnillo, material );
+    tubo = new THREE.Mesh( geoKnot, material );
+    anillo = new THREE.Mesh ( geoCapsula, material );
     /*******************
     * TO DO: Construir un suelo en el plano XZ
     *******************/
@@ -117,6 +117,8 @@ function loadScene()
     pentagonoObj.add(cono);
     pentagonoObj.add(tubo);
     pentagonoObj.add(anillo);
+
+
     /*******************
     * TO DO: Añadir a la escena un modelo importado en el centro del pentagono
     *******************/
@@ -125,8 +127,12 @@ function loadScene()
             pentagonoObj.add(objeto);
             objeto.position.x = 0;
             objeto.position.y = 0;
+            objeto.rotation.x = Math.PI / 2;
         }
     )
+
+    pentagonoObj.rotation.x = -Math.PI / 2;
+    pentagonoObj.position.y = 2;
     /*******************
     * TO DO: Añadir a la escena unos ejes
     *******************/
