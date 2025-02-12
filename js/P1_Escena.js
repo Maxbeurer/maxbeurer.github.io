@@ -23,11 +23,11 @@ let renderer, scene, camera;
  * TO DO: Variables globales de la aplicacion
  *******************/
 let pentagonoObj;
-let tubo;
+let knot;
 let cubo;
 let esfera;
 let cono;
-let anillo;
+let capsula;
 let angulo = 0;
 let anguloPropio = 0;
 let r = 3;
@@ -77,8 +77,8 @@ function loadScene()
     cubo = new THREE.Mesh( geoCubo, material );
     esfera = new THREE.Mesh( geoEsfera, material );
     cono = new THREE.Mesh( geoCono, material );
-    tubo = new THREE.Mesh( geoKnot, material );
-    anillo = new THREE.Mesh ( geoCapsula, material );
+    knot = new THREE.Mesh( geoKnot, material );
+    capsula = new THREE.Mesh ( geoCapsula, material );
     /*******************
     * TO DO: Construir un suelo en el plano XZ
     *******************/
@@ -104,19 +104,19 @@ function loadScene()
     cono.position.x = xObj3;
     cono.position.y = yObj3;
 
-    tubo.position.x = xObj4;
-    tubo.position.y = yObj4;
+    knot.position.x = xObj4;
+    knot.position.y = yObj4;
 
-    anillo.position.x = xObj5;
-    anillo.position.y = yObj5;
+    capsula.position.x = xObj5;
+    capsula.position.y = yObj5;
 
     scene.add(pentagonoObj);
 
     pentagonoObj.add(cubo);
     pentagonoObj.add(esfera);
     pentagonoObj.add(cono);
-    pentagonoObj.add(tubo);
-    pentagonoObj.add(anillo);
+    pentagonoObj.add(knot);
+    pentagonoObj.add(capsula);
 
 
     /*******************
@@ -140,8 +140,8 @@ function loadScene()
     cubo.add( new THREE.AxesHelper(3) );
     esfera.add( new THREE.AxesHelper(3) );
     cono.add( new THREE.AxesHelper(3) );
-    tubo.add( new THREE.AxesHelper(3) );
-    anillo.add( new THREE.AxesHelper(3) );
+    knot.add( new THREE.AxesHelper(3) );
+    capsula.add( new THREE.AxesHelper(3) );
 }
 
 function update()
@@ -157,13 +157,13 @@ function update()
     cubo.rotation.x = anguloPropio;
     esfera.rotation.x = anguloPropio;
     cono.rotation.x = anguloPropio;
-    tubo.rotation.x = anguloPropio;
-    anillo.rotation.x = anguloPropio;
+    knot.rotation.x = anguloPropio;
+    capsula.rotation.x = anguloPropio;
     cubo.rotation.z = anguloPropio;
     esfera.rotation.z = anguloPropio;
     cono.rotation.z = anguloPropio;
-    tubo.rotation.z = anguloPropio;
-    anillo.rotation.z = anguloPropio;
+    knot.rotation.z = anguloPropio;
+    capsula.rotation.z = anguloPropio;
 }
 
 function render()
