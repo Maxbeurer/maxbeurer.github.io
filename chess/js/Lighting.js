@@ -5,13 +5,13 @@ class Lighting {
     }
 
     setupLighting() {
-        // Ambient light (dim)
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+        // Ambient light
+        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         this.scene.add(this.ambientLight);
 
         // Main board spotlight
-        this.boardLight = new THREE.SpotLight(0xffffff, 1.2);
-        this.boardLight.position.set(5, 15, 5);
+        this.boardLight = new THREE.SpotLight(0xffffff, 1.0);
+        this.boardLight.position.set(0, 15, 0);
         this.boardLight.angle = Math.PI / 4;
         this.boardLight.penumbra = 0.4;
         this.boardLight.decay = 1.5;

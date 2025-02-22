@@ -5,9 +5,26 @@ class ChessBoard {
         this.squares = [];
         this.pieces = [];
         this.selectedSquare = null;
+        this.pieceModels = {};
         
-        this.createBoard();
-        this.createPieces();
+        // Load the chess pieces model first
+        const loader = new THREE.GLTFLoader();
+        loader.load('assets/chess_pieces/scene.gltf', (gltf) => {
+            console.log('GLTF loaded:', gltf);
+            // Clone the scene to avoid modifying the original
+            const modelScene = gltf.scene.clone();
+            this.pieceModels = this.processPieceModels(modelScene);
+            this.createBoard();
+            this.createPieces();
+        }, 
+        // Progress callback
+        (xhr) => {
+            console.log('Loading model:', (xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        // Error callback
+        (error) => {
+            console.error('Error loading model:', error);
+        });
     }
 
     createBoard() {
@@ -39,38 +56,62 @@ class ChessBoard {
         }
     }
 
-    createPieces() {
-        const pieceDefinitions = {
-            pawn: {
-                geometry: new THREE.CylinderGeometry(0.2, 0.2, 0.6, 16),
-                height: 0.3
-            },
-            rook: {
-                geometry: new THREE.BoxGeometry(0.3, 0.8, 0.3),
-                height: 0.4
-            },
-            knight: {
-                geometry: this.createKnightGeometry(),
-                height: 0.4
-            },
-            bishop: {
-                geometry: new THREE.ConeGeometry(0.2, 0.8, 16),
-                height: 0.4
-            },
-            queen: {
-                geometry: new THREE.SphereGeometry(0.25, 16, 16),
-                height: 0.4
-            },
-            king: {
-                geometry: this.createKingGeometry(),
-                height: 0.4
-            }
+    processPieceModels(scene) {
+        console.log('Processing scene:', scene);
+        
+        const models = {
+            pawn: null,
+            rook: null,
+            knight: null,
+            bishop: null,
+            queen: null,
+            king: null
         };
+
+        // Map piece types to their corresponding nodes in the GLTF
+        const pieceMapping = {
+            pawn: ['Vert004', 'Vert004'],
+            rook: ['Vert', 'Vert006'],
+            knight: ['Vert002', 'Vert008'],
+            bishop: ['Vert003', 'Vert009'],
+            queen: ['Vert004', 'Vert010'],
+            king: ['Vert005', 'Vert011']
+        };
+
+        // Find parent objects that contain the piece meshes
+        scene.traverse((node) => {
+            if (node.type === 'Object3D' || node.type === 'Group') {
+                const name = node.name;
+                for (const [pieceType, nodeNames] of Object.entries(pieceMapping)) {
+                    if (nodeNames.includes(name) && !models[pieceType]) {
+                        console.log('Found piece parent:', name, 'for', pieceType);
+                        models[pieceType] = node;
+                    }
+                }
+            }
+        });
+
+        return models;
+    }
+
+    createPieces() {
+        if (!this.pieceModels || Object.keys(this.pieceModels).length === 0) {
+            return; // Wait for models to load
+        }
 
         const initialPositions = [
             ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'],
             Array(8).fill('pawn')
         ];
+
+        const pieceHeights = {
+            pawn: 0.3,
+            rook: 0.4,
+            knight: 0.4,
+            bishop: 0.4,
+            queen: 0.45,
+            king: 0.5
+        };
 
         // Create pieces for both colors
         ['white', 'black'].forEach((color, colorIndex) => {
@@ -78,49 +119,73 @@ class ChessBoard {
                 const z = color === 'white' ? rowIndex : 7 - rowIndex;
                 row.forEach((type, x) => {
                     const piece = this.createPiece(
-                        pieceDefinitions[type],
+                        type,
                         color,
-                        new THREE.Vector3(x - 3.5, pieceDefinitions[type].height, z - 3.5)
+                        new THREE.Vector3(x - 3.5, pieceHeights[type], z - 3.5)
                     );
-                    this.pieces.push(piece);
+                    if (piece) this.pieces.push(piece);
                 });
             });
         });
     }
 
-    createKnightGeometry() {
-        const points = [
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.2, 0),
-            new THREE.Vector2(0.2, 0.4),
-            new THREE.Vector2(0.1, 0.6),
-            new THREE.Vector2(0.3, 0.8),
-            new THREE.Vector2(0.1, 0.8),
-            new THREE.Vector2(0, 0.6)
-        ];
-        return new THREE.LatheGeometry(points, 16);
-    }
+    createPiece(type, color, position) {
+        const sourceObject = this.pieceModels[type];
+        if (!sourceObject) return null;
 
-    createKingGeometry() {
-        const points = [
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.25, 0),
-            new THREE.Vector2(0.25, 0.6),
-            new THREE.Vector2(0.2, 0.7),
-            new THREE.Vector2(0.3, 0.8),
-            new THREE.Vector2(0.2, 0.9),
-            new THREE.Vector2(0.2, 1.0),
-            new THREE.Vector2(0, 1.0)
-        ];
-        return new THREE.LatheGeometry(points, 16);
-    }
-
-    createPiece(definition, color, position) {
-        const piece = new THREE.Mesh(
-            definition.geometry,
-            this.materials.getMaterial('wood', 'pieces', color)
-        );
+        // Create a new group to hold the piece
+        const piece = new THREE.Group();
         
+        // Clone the source object and its children
+        const modelClone = sourceObject.clone();
+        
+        // Create materials for the piece
+        const whiteMaterial = new THREE.MeshPhongMaterial({
+            color: 0xf0d9b5,
+            shininess: 30,
+            side: THREE.DoubleSide
+        });
+        
+        const blackMaterial = new THREE.MeshPhongMaterial({
+            color: 0x946f51,
+            shininess: 30,
+            side: THREE.DoubleSide
+        });
+        
+        // Apply materials and shadows to all meshes
+        modelClone.traverse((node) => {
+            if (node.isMesh) {
+                node.material = color === 'white' ? whiteMaterial : blackMaterial;
+                node.castShadow = true;
+            }
+        });
+        
+        // Add the model to our group
+        piece.add(modelClone);
+        
+        // Set up the piece's transform
+        const baseScale = 0.004;
+        const scaleMultiplier = {
+            pawn: 1,
+            rook: 1.2,
+            knight: 1.1,
+            bishop: 1.2,
+            queen: 1.3,
+            king: 1.4
+        };
+        
+        // Reset transformations
+        piece.position.set(0, 0, 0);
+        piece.rotation.set(0, 0, 0);
+        piece.scale.set(1, 1, 1);
+        
+        // Apply transformations in order
+        modelClone.rotation.x = -Math.PI / 2;
+        modelClone.rotation.y = color === 'black' ? Math.PI : 0;
+        
+        // Scale and position the group
+        const scale = baseScale * scaleMultiplier[type];
+        piece.scale.setScalar(scale);
         piece.position.copy(position);
         piece.castShadow = true;
         piece.userData.materialInfo = {

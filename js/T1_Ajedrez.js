@@ -9,6 +9,7 @@
  * Zhen Feng
  */
 
+
 // Modulos necesarios
 /*******************
  * TO DO: Cargar los modulos necesarios
@@ -18,7 +19,6 @@ import {GLTFLoader} from "../lib/GLTFLoader.module.js";
 import {OrbitControls} from "../lib/OrbitControls.module.js";
 import {TWEEN} from "../lib/tween.module.min.js";
 import {GUI} from "../lib/lil-gui.module.min.js";
-
 // Variables de consenso
 let renderer, scene, camera;
 
@@ -27,24 +27,12 @@ let renderer, scene, camera;
  * TO DO: Variables globales de la aplicacion
  *******************/
 let cameraControls, effectController;
-let pentagonoObj;
-let knot,cubo,esfera,cono,capsula;
-let r = 3;
 
-let xObj1 = r * Math.cos(2 * Math.PI * 1 / 5);
-let yObj1 = r * Math.sin(2 * Math.PI * 1 / 5);
-let xObj2 = r * Math.cos(2 * Math.PI * 2 / 5);
-let yObj2 = r * Math.sin(2 * Math.PI * 2 / 5);
-let xObj3 = r * Math.cos(2 * Math.PI * 3 / 5);
-let yObj3 = r * Math.sin(2 * Math.PI * 3 / 5);
-let xObj4 = r * Math.cos(2 * Math.PI * 4 / 5);
-let yObj4 = r * Math.sin(2 * Math.PI * 4 / 5);
-let xObj5 = r * Math.cos(2 * Math.PI * 5 / 5);
-let yObj5 = r * Math.sin(2 * Math.PI * 5 / 5);
+
 // Acciones
 init();
 loadScene();
-loadGUI();
+//loadGUI();
 render();
 
 function init()
@@ -53,201 +41,213 @@ function init()
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
     /*******************
-    * TO DO: Completar el motor de render y el canvas
+    * TO DO: Completar el motor de render, el canvas y habilitar
+    * el buffer de sombras
     *******************/
     document.getElementById('container').appendChild( renderer.domElement );
+    renderer.antialias = true;
+    renderer.shadowMap.enabled = true;
+
     // Escena
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0.5,0.5,0.5);
     // Camara
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1,1000);
-    camera.position.set( 0.5, 2, 7 );
-    /*******************
-    * TO DO: Añadir manejador de camara (OrbitControls)
-    *******************/
-    cameraControls = new OrbitControls( camera, renderer.domElement );
-    cameraControls.target.set(0,1,0);
-    camera.lookAt( new THREE.Vector3(0,1,0) );
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.set(5, 4, 5);
+    cameraControls = new OrbitControls(camera, renderer.domElement);
+    cameraControls.target.set(0, 0, 0);
+    camera.lookAt(0, 0, 0);
+    
+    // Set some constraints on the controls
+    cameraControls.maxPolarAngle = Math.PI/2 - 0.1; // Prevent going below the board
+    cameraControls.minDistance = 3;
+    cameraControls.maxDistance = 10;
 
-    // Eventos
-    //renderer.domElement.addEventListener('dblclick', animate );
+    // Luces
+    /*******************
+     * TO DO: Añadir luces y habilitar sombras
+     * - Una ambiental
+     * - Una direccional
+     * - Una focal
+     *******************/
+    // Enhanced lighting setup
+    const ambiental = new THREE.AmbientLight(0x808080, 0.6);
+    scene.add(ambiental);
+    
+    const direccional = new THREE.DirectionalLight(0xFFFFFF, 0.7);
+    direccional.position.set(4, 6, 4);
+    direccional.castShadow = true;
+    direccional.shadow.mapSize.width = 2048;
+    direccional.shadow.mapSize.height = 2048;
+    direccional.shadow.camera.near = 0.1;
+    direccional.shadow.camera.far = 20;
+    direccional.shadow.camera.left = -5;
+    direccional.shadow.camera.right = 5;
+    direccional.shadow.camera.top = 5;
+    direccional.shadow.camera.bottom = -5;
+    scene.add(direccional);
+    
+    const focal1 = new THREE.SpotLight(0xFFFFFF, 0.3);
+    focal1.position.set(-3, 6, -3);
+    focal1.target.position.set(0, 0, 0);
+    focal1.angle = Math.PI/4;
+    focal1.penumbra = 0.3;
+    focal1.castShadow = true;
+    focal1.shadow.mapSize.width = 1024;
+    focal1.shadow.mapSize.height = 1024;
+    scene.add(focal1);
+
+    const focal2 = new THREE.SpotLight(0xFFFFFF, 0.2);
+    focal2.position.set(3, 6, 3);
+    focal2.target.position.set(0, 0, 0);
+    focal2.angle = Math.PI/4;
+    focal2.penumbra = 0.3;
+    focal2.castShadow = true;
+    focal2.shadow.mapSize.width = 1024;
+    focal2.shadow.mapSize.height = 1024;
+    scene.add(focal2);
 }
 
 function loadScene()
 {
-    const material = new THREE.MeshNormalMaterial( {wireframe:false} );
-
-    /*******************
-    * TO DO: Misma escena que en la practica anterior
-    *******************/
-    const geoCubo = new THREE.BoxGeometry( 2,2,2 );
-    const geoEsfera = new THREE.SphereGeometry( 1, 20,20 );
-    const geoCono = new THREE.ConeGeometry();
-    const geoKnot = new THREE.TorusKnotGeometry();
-    const geoCapsula = new THREE.CapsuleGeometry();
-    cubo = new THREE.Mesh( geoCubo, material );
-    esfera = new THREE.Mesh( geoEsfera, material );
-    cono = new THREE.Mesh( geoCono, material );
-    knot = new THREE.Mesh( geoKnot, material );
-    capsula = new THREE.Mesh ( geoCapsula, material );
-
-    // Plano XZ
-    const suelo = new THREE.Mesh( new THREE.PlaneGeometry(10,10, 10,10), material );
-    scene.add(suelo);
+    // Load chessboard texture
+    const textureLoader = new THREE.TextureLoader();
+    const chessboardTexture = textureLoader.load('images/chessboard.jpg');
+    chessboardTexture.wrapS = THREE.RepeatWrapping;
+    chessboardTexture.wrapT = THREE.RepeatWrapping;
+    
+    const floorMaterial = new THREE.MeshStandardMaterial({
+        map: chessboardTexture,
+        roughness: 0.8,
+        metalness: 0.1
+    });
+    
+    const suelo = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), floorMaterial);
     suelo.rotation.x = -Math.PI / 2;
+    suelo.receiveShadow = true;
+    scene.add(suelo);
 
-    pentagonoObj = new THREE.Object3D();
-    const loader = new THREE.ObjectLoader();
+    scene.add(new THREE.AxesHelper(3));
 
-    cubo.position.x = xObj1;
-    cubo.position.y = yObj1;
+    // Enhanced materials for chess pieces
+    const whiteMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFFFFFF,
+        metalness: 0.3,
+        roughness: 0.4,
+        envMapIntensity: 1.0
+    });
     
-    esfera.position.x = xObj2;
-    esfera.position.y = yObj2;
+    const blackMaterial = new THREE.MeshStandardMaterial({
+        color: 0x202020,
+        metalness: 0.3,
+        roughness: 0.4,
+        envMapIntensity: 1.0
+    });
 
-    cono.position.x = xObj3;
-    cono.position.y = yObj3;
+    // Function to get board position
+    function getBoardPosition(row, col) {
+        const squareSize = 1; // Size of each board square
+        const boardOffset = 3.5; // Half the board size (8/2 - 0.5) to center
+        return {
+            x: (col - boardOffset) * squareSize,
+            z: (row - boardOffset) * squareSize
+        };
+    }
 
-    knot.position.x = xObj4;
-    knot.position.y = yObj4;
+    // Function to create and position a piece
+    function createPiece(mesh, material, row, col, pieceType) {
+        const piece = mesh.clone();
+        
+        // Adjust scale based on piece type
+        let scale = 0.7;
+        piece.scale.set(scale, scale, scale);
+        
+        const pos = getBoardPosition(row, col);
+        // Add a small elevation to prevent z-fighting with the board
+        const elevation = 0.01;
+        piece.position.set(pos.x, elevation, pos.z);
+        piece.rotation.x = -Math.PI / 2;
+        // Apply material and shadows
+        piece.traverse((child) => {
+            if (child.isMesh) {
+                child.material = material;
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+        
+        return piece;
+    }
 
-    capsula.position.x = xObj5;
-    capsula.position.y = yObj5;
+    const loader = new GLTFLoader();
+    loader.load('chess/assets/chess_pieces/scene.gltf', function(gltf) {
+        // Find individual piece meshes
+        let pieceMeshes = {};
+        gltf.scene.traverse((child) => {
+            if (child.isMesh) {
+                if (child.name.includes('Vert004')) {
+                    pieceMeshes.pawn = child.parent;
+                } else if (child.name.includes('Vert005')) {
+                    pieceMeshes.rook = child.parent;
+                } else if (child.name.includes('Vert003')) {
+                    pieceMeshes.knight = child.parent;
+                } else if (child.name.includes('Vert002')) {
+                    pieceMeshes.bishop = child.parent;
+                } else if (child.name.includes('Vert001')) {
+                    pieceMeshes.queen = child.parent;
+                } else if (child.name.includes('Vert006')) {
+                    pieceMeshes.king = child.parent;
+                }
+            }
+        });
 
-    scene.add(pentagonoObj);
-
-    pentagonoObj.add(cubo);
-    pentagonoObj.add(esfera);
-    pentagonoObj.add(cono);
-    pentagonoObj.add(knot);
-    pentagonoObj.add(capsula);
-
-
-    //Añadir a la escena un modelo importado en el centro del pentagono
-
-    loader.load( 'models/soldado/soldado.json', 
-        function(objeto){
-            pentagonoObj.add(objeto);
-            objeto.position.x = 0;
-            objeto.position.y = 0;
-            objeto.rotation.x = Math.PI / 2;
+        // Create and position white pieces
+        const pieceOrder = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'];
+        
+        // White back row
+        for (let i = 0; i < 8; i++) {
+            const piece = createPiece(pieceMeshes[pieceOrder[i]], whiteMaterial, 7, i, pieceOrder[i]);
+            scene.add(piece);
         }
-    )
 
-    pentagonoObj.rotation.x = -Math.PI / 2;
-    pentagonoObj.position.y = 2;
-    //Añadir a la escena unos ejes
-    scene.add( new THREE.AxesHelper(3) );
-    cubo.add( new THREE.AxesHelper(3) );
-    esfera.add( new THREE.AxesHelper(3) );
-    cono.add( new THREE.AxesHelper(3) );
-    knot.add( new THREE.AxesHelper(3) );
-    capsula.add( new THREE.AxesHelper(3) );
+        // White pawns
+        for (let i = 0; i < 8; i++) {
+            const pawn = createPiece(pieceMeshes.pawn, whiteMaterial, 6, i, 'pawn');
+            scene.add(pawn);
+        }
+
+        // Black back row
+        for (let i = 0; i < 8; i++) {
+            const piece = createPiece(pieceMeshes[pieceOrder[i]], blackMaterial, 0, i, pieceOrder[i]);
+
+            scene.add(piece);
+        }
+
+        // Black pawns
+        for (let i = 0; i < 8; i++) {
+            const pawn = createPiece(pieceMeshes.pawn, blackMaterial, 1, i, 'pawn');
+            scene.add(pawn);
+        }
+
+    }, undefined, function(error) {
+        console.error("Failed to load GLTF model:", error);
+    });
+
 
 }
 
-function loadGUI()
+/*function loadGUI()
 {
-    // Interfaz de usuario
-    /*******************
-    * TO DO: Crear la interfaz de usuario con la libreria lil-gui.js
-    * - Funcion de disparo de animaciones. Las animaciones deben ir
-    *   encadenadas
-    * - Slider de control de radio del pentagono
-    * - Checkbox para alambrico/solido
-    *******************/
-    // Definicion de los controles
-    effectController = {
-        mensaje: 'Pentagono Animado',
-        radiopentagono: 3,
-        wireframe: false,
-        animationStart: function() {
-            // Reset rotations first
-            pentagonoObj.rotation.z = 0;
-            [cubo, esfera, cono, knot, capsula].forEach(obj => {
-                obj.rotation.y = 0;
-            });
-
-            // Animación del pentágono completo
-            new TWEEN.Tween(pentagonoObj.rotation)
-                .to({ z: Math.PI * 2 }, 2000)
-                .easing(TWEEN.Easing.Quadratic.InOut)
-                .onComplete(() => {
-                    // Reset pentagon rotation
-                    pentagonoObj.rotation.z = 0;
-
-                    // Animación de rotación individual de cada objeto
-                    const rotationTweens = [cubo, esfera, cono, knot, capsula].map(obj => 
-                        new TWEEN.Tween(obj.rotation)
-                            .to({ y: Math.PI * 2 }, 1500)
-                            .easing(TWEEN.Easing.Cubic.InOut)
-                            .onComplete(() => {
-                                // Reset individual object rotation
-                                obj.rotation.y = 0;
-                            })
-                    );
-                    
-                    // Iniciar todas las rotaciones individuales
-                    rotationTweens.forEach(tween => tween.start());
-                })
-                .start();
-        }
-    };
-
-    // Creacion interfaz
-    const gui = new GUI();
-
-    // Construccion del menu
-    const h = gui.addFolder("Control Pentagono");
-    h.add(effectController, "mensaje").name("Aplicacion");
-    h.add(effectController, "radiopentagono", 1, 5, 0.1)
-        .name("Radio Pentagono")
-        .onChange((value) => {
-            r = value;
-            // Actualizar posiciones
-            xObj1 = r * Math.cos(2 * Math.PI * 1 / 5);
-            yObj1 = r * Math.sin(2 * Math.PI * 1 / 5);
-            xObj2 = r * Math.cos(2 * Math.PI * 2 / 5);
-            yObj2 = r * Math.sin(2 * Math.PI * 2 / 5);
-            xObj3 = r * Math.cos(2 * Math.PI * 3 / 5);
-            yObj3 = r * Math.sin(2 * Math.PI * 3 / 5);
-            xObj4 = r * Math.cos(2 * Math.PI * 4 / 5);
-            yObj4 = r * Math.sin(2 * Math.PI * 4 / 5);
-            xObj5 = r * Math.cos(2 * Math.PI * 5 / 5);
-            yObj5 = r * Math.sin(2 * Math.PI * 5 / 5);
-
-            // Actualizar objetos
-            cubo.position.set(xObj1, yObj1, 0);
-            esfera.position.set(xObj2, yObj2, 0);
-            cono.position.set(xObj3, yObj3, 0);
-            knot.position.set(xObj4, yObj4, 0);
-            capsula.position.set(xObj5, yObj5, 0);
-        });
-    
-    h.add(effectController, "wireframe")
-        .name("Wireframe")
-        .onChange((value) => {
-            cubo.material.wireframe = value;
-            esfera.material.wireframe = value;
-            cono.material.wireframe = value;
-            knot.material.wireframe = value;
-            capsula.material.wireframe = value;
-        });
-    
-    h.add(effectController, "animationStart").name("Animar");
-}
+}*/
 
 function update(delta)
 {
-    /*******************
-    * TO DO: Actualizar tween
-    *******************/
-    TWEEN.update();
+
 }
 
 function render(delta)
 {
     requestAnimationFrame( render );
-    update(delta);
+    update();
     renderer.render( scene, camera );
 }
